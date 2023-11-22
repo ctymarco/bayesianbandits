@@ -1,4 +1,9 @@
 
+# load packages -----------------------------------------------------------
+
+library(contextual)
+library(tidyverse)
+library(Hmisc)
 
 # shannon entropy function ------------------------------------------------
 
@@ -17,8 +22,8 @@ get_entropy <- function(target) {
 
 utility <- function(x){
   ifelse(
-    x < 0, 
-    (-lambda*((-1*(10*x))^gamma)), 
+    x < 0,
+    (-lambda*((-1*(10*x))^gamma)),
     ((10*x)^gamma)
   )
 }
@@ -27,15 +32,15 @@ utility <- function(x){
 # get_sampling_data -------------------------------------------------------
 
 get_sampling_data <- function(num_periods, beta, lambda, gamma, cost, data_size){
-  
+
   utility <- function(x){
     ifelse(
-      x < 0, 
-      (-lambda*((-1*(10*x))^gamma)), 
+      x < 0,
+      (-lambda*((-1*(10*x))^gamma)),
       ((10*x)^gamma)
     )
   }
-  
+
   bandit <-
     contextual::BasicBernoulliBandit$new(
       weights =
@@ -46,19 +51,19 @@ get_sampling_data <- function(num_periods, beta, lambda, gamma, cost, data_size)
           0.7
         )
     )
-  
+
   policy <-
     contextual::ThompsonSamplingPolicy$new(
       alpha = 1,
       beta = 1
     )
-  
+
   agent <-
     contextual::Agent$new(
       policy,
       bandit
     )
-  
+
   simulator <-
     contextual::Simulator$new(
       agent,
@@ -69,14 +74,14 @@ get_sampling_data <- function(num_periods, beta, lambda, gamma, cost, data_size)
       do_parallel =
         TRUE
     )
-  
+
   history <-
     simulator$run()
-  
+
   sampling_data <-
     history$data %>%
     dplyr::group_by(
-      sim 
+      sim
     ) %>%
     dplyr::arrange(
       .,
@@ -131,17 +136,17 @@ get_sampling_data <- function(num_periods, beta, lambda, gamma, cost, data_size)
         cumsum(
           discounted_u
         )
-    ) 
-  
+    )
+
   for(i in 1:nrow(sampling_data)){
-    
+
     sampling_data$cum_entropy[i] <-
       get_entropy(
         sampling_data$choice[1:i]
       )
   }
-  
-  sampling_data <- 
+
+  sampling_data <-
     sampling_data %>%
     dplyr::select(
       sim,
@@ -163,7 +168,7 @@ get_sampling_data <- function(num_periods, beta, lambda, gamma, cost, data_size)
       cum_regret_rate,
       everything()
     )
-  
+
   return(
     sampling_data
   )
@@ -173,14 +178,14 @@ get_sampling_data <- function(num_periods, beta, lambda, gamma, cost, data_size)
 
 get_correlation <-
   function(num_periods, beta, lambda, gamma, cost, data_size, sim_n){
-    
+
     sampling_data <-
       get_sampling_data(num_periods, beta, lambda, gamma, cost, data_size) %>%
       dplyr::filter(
-        sim == 
+        sim ==
           sim_n
       )
-    
+
     return(
       cor(
         sampling_data$cum_entropy,
