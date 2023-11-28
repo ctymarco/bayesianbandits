@@ -33,7 +33,7 @@ utility <- function(x, lambda, gamma){
 
 get_sampling_data <- function(num_periods, beta, lambda, gamma, cost, data_size){
 
-  utility <- function(x){
+  utility <- function(x, lambda, gamma){
     ifelse(
       x < 0,
       (-lambda*((-1*(10*x))^gamma)),
@@ -124,7 +124,9 @@ get_sampling_data <- function(num_periods, beta, lambda, gamma, cost, data_size)
     dplyr::mutate(
       u =
         utility(
-          profit
+          profit,
+          lambda,
+          gamma
         )
     ) %>%
     dplyr::mutate(
