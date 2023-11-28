@@ -20,7 +20,7 @@ get_entropy <- function(target) {
 
 # utility  ----------------------------------------------------------------
 
-utility <- function(x){
+utility <- function(x, lambda, gamma){
   ifelse(
     x < 0,
     (-lambda*((-1*(10*x))^gamma)),
